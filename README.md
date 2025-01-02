@@ -10,7 +10,7 @@ Also included is the **image** demonstrating the resulting dashboard UI.
 
 ## Dashboard Screenshot
 
-![Smart Heating Dashboard Screenshot](https://user-images.githubusercontent.com/youruser/yourrepo/yourimage.jpg)
+![Smart Heating Dashboard Screenshot](https://preview.redd.it/smart-heating-just-got-smarter-v0-unt4d3987x0e1.jpeg?width=1080&crop=smart&auto=webp&s=9cd1ac8fb0dd8241d5829857b5c590a60e4f5b41)
 
 
 ---
