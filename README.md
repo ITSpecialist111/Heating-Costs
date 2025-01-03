@@ -15,7 +15,7 @@ Also included is the **image** demonstrating the resulting dashboard UI.
 
 ---
 
-# Smart Heating Dashboard: Step 2 – Requirements
+# Smart Heating Dashboard: Step 1 – Requirements
 
 Before setting up your **Smart Heating Dashboard**, you’ll need the following:
 
