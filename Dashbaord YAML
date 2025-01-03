@@ -1,0 +1,381 @@
+views:
+  - title: Heating Control
+    path: heating
+    icon: mdi:radiator
+    type: sections
+    sections:
+      - type: grid
+        columns: 2
+        cards:
+          - type: heading
+            heading: Upstairs Climate
+          - type: custom:mushroom-climate-card
+            entity: climate.ethan
+            name: Ethan's Room
+            icon: mdi:bed
+            hvac_modes:
+              - 'off'
+              - heat
+            fill_container: true
+            collapsible_controls: true
+            show_temperature_control: true
+          - type: custom:mushroom-climate-card
+            entity: climate.jacob
+            name: Jacob's Room
+            icon: mdi:bed
+            hvac_modes:
+              - 'off'
+              - heat
+            fill_container: true
+            collapsible_controls: true
+            show_temperature_control: true
+          - type: custom:mushroom-template-card
+            primary: Ethan's Room Cost
+            secondary: £{{ states('sensor.ethan_room_daily_cost') }}
+            icon: mdi:currency-gbp
+            icon_color: |-
+              {% if is_state('climate.ethan', 'heat') %}
+                orange
+              {% else %}
+                grey
+              {% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            primary: Jacob's Room Cost
+            secondary: £{{ states('sensor.jacob_room_daily_cost') }}
+            icon: mdi:currency-gbp
+            icon_color: |-
+              {% if is_state('climate.jacob', 'heat') %}
+                orange
+              {% else %}
+                grey
+              {% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-title-card
+            title: ''
+            alignment: center
+          - type: custom:mushroom-climate-card
+            entity: climate.master_bedroom
+            name: Master Bedroom
+            icon: mdi:bed-king
+            hvac_modes:
+              - 'off'
+              - heat
+            fill_container: true
+            collapsible_controls: true
+            show_temperature_control: true
+          - type: custom:mushroom-climate-card
+            entity: climate.landing
+            name: Landing Area
+            icon: mdi:stairs
+            hvac_modes:
+              - 'off'
+              - heat
+            fill_container: true
+            collapsible_controls: true
+            show_temperature_control: true
+          - type: custom:mushroom-template-card
+            primary: Master Bedroom Cost
+            secondary: £{{ states('sensor.master_bedroom_daily_cost') }}
+            icon: mdi:currency-gbp
+            icon_color: |-
+              {% if is_state('climate.master_bedroom', 'heat') %}
+                orange
+              {% else %}
+                grey
+              {% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            primary: Landing Cost
+            secondary: £{{ states('sensor.landing_daily_cost') }}
+            icon: mdi:currency-gbp
+            icon_color: |-
+              {% if is_state('climate.landing', 'heat') %}
+                orange
+              {% else %}
+                grey
+              {% endif %}
+            tap_action:
+              action: more-info
+          - type: heading
+            heading: Temperature History
+          - type: custom:mini-graph-card
+            name: Upstairs Temperature History
+            entities:
+              - entity: climate.ethan
+                name: Ethan
+                attribute: temperature
+              - entity: climate.jacob
+                name: Jacob
+                attribute: temperature
+              - entity: climate.master_bedroom
+                name: Master
+                attribute: temperature
+              - entity: climate.landing
+                name: Landing
+                attribute: temperature
+            hours_to_show: 24
+            points_per_hour: 2
+            line_width: 2
+            show:
+              labels: true
+              legend: true
+            aggregate_func: avg
+      - type: grid
+        columns: 2
+        cards:
+          - type: heading
+            heading: Downstairs Climate
+          - type: custom:mushroom-climate-card
+            entity: climate.living_room
+            name: Living Room
+            icon: mdi:sofa
+            hvac_modes:
+              - 'off'
+              - heat
+            fill_container: true
+            collapsible_controls: true
+            show_temperature_control: true
+          - type: custom:mushroom-climate-card
+            entity: climate.kitchen
+            name: Kitchen
+            icon: mdi:stove
+            hvac_modes:
+              - 'off'
+              - heat
+            fill_container: true
+            collapsible_controls: true
+            show_temperature_control: true
+          - type: custom:mushroom-template-card
+            primary: Living Room Cost
+            secondary: £{{ states('sensor.living_room_daily_cost') }}
+            icon: mdi:currency-gbp
+            icon_color: |-
+              {% if is_state('climate.living_room', 'heat') %}
+                orange
+              {% else %}
+                grey
+              {% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            primary: Kitchen Cost
+            secondary: £{{ states('sensor.kitchen_daily_cost') }}
+            icon: mdi:currency-gbp
+            icon_color: |-
+              {% if is_state('climate.kitchen', 'heat') %}
+                orange
+              {% else %}
+                grey
+              {% endif %}
+            tap_action:
+              action: more-info
+          - type: heading
+            heading: Quick Controls
+            heading_style: title
+            grid_options:
+              columns: full
+              rows: 1
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:thermometer
+                content: >
+                  {% set temps = [
+                    states('climate.ethan'),
+                    states('climate.jacob'),
+                    states('climate.master_bedroom'),
+                    states('climate.landing'),
+                    states('climate.living_room'),
+                    states('climate.kitchen')
+                  ] | map('float') | list %}
+                  Avg: {{ (temps | sum / temps | length) | round(1) }}°C
+              - type: template
+                icon: mdi:radiator
+                content: >
+                  {% set active = namespace(count=0) %}
+                  {% for climate in ['climate.ethan', 'climate.jacob', 'climate.master_bedroom',
+                                    'climate.landing', 'climate.living_room', 'climate.kitchen'] %}
+                    {% if states(climate) == 'heat' %}
+                      {% set active.count = active.count + 1 %}
+                    {% endif %}
+                  {% endfor %}
+                  {{ active.count }} Active
+                icon_color: |
+                  {% if active.count > 0 %}orange{% else %}grey{% endif %}
+          - type: custom:mini-graph-card
+            name: Downstairs Temperature History
+            entities:
+              - entity: climate.living_room
+                name: Living Room
+                attribute: temperature
+              - entity: climate.kitchen
+                name: Kitchen
+                attribute: temperature
+            hours_to_show: 24
+            points_per_hour: 2
+            line_width: 2
+            show:
+              labels: true
+              legend: true
+            aggregate_func: avg
+          - type: heading
+            heading: Heating Costs
+          - type: custom:mushroom-template-card
+            primary: Total Heating Cost Today
+            secondary: £{{ states('sensor.total_heating_daily_cost') }}
+            icon: mdi:radiator
+            icon_color: |-
+              {% if states('sensor.total_heating_daily_cost') | float > 2 %}
+                red
+              {% elif states('sensor.total_heating_daily_cost') | float > 1 %}
+                orange
+              {% else %}
+                green
+              {% endif %}
+          - type: custom:mushroom-template-card
+            primary: Total Heating Time
+            secondary: '{{ states(''sensor.total_heating_hours'') }} hours'
+            icon: mdi:clock
+            icon_color: |-
+              {% if states('sensor.total_heating_hours') | float > 4 %}
+                red
+              {% elif states('sensor.total_heating_hours') | float > 2 %}
+                orange
+              {% else %}
+                green
+              {% endif %}
+          - type: custom:mini-graph-card
+            name: Daily Heating Costs by Room
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            entities:
+              - entity: sensor.ethan_room_daily_cost
+                name: Ethan
+              - entity: sensor.jacob_room_daily_cost
+                name: Jacob
+              - entity: sensor.master_bedroom_daily_cost
+                name: Master
+              - entity: sensor.landing_daily_cost
+                name: Landing
+              - entity: sensor.living_room_daily_cost
+                name: Living Room
+              - entity: sensor.kitchen_daily_cost
+                name: Kitchen
+            show:
+              labels: true
+              legend: true
+              points: true
+      - type: grid
+        columns: 2
+        cards:
+          - type: heading
+            heading: Environmental Sensors
+          - type: custom:mini-graph-card
+            name: Upstairs Environment
+            entities:
+              - entity: sensor.upstairs_temperature_sensor_temperature
+                name: Temperature
+                color: '#e74c3c'
+              - entity: sensor.upstairs_temperature_sensor_humidity
+                name: Humidity
+                color: '#3498db'
+                y_axis: secondary
+            hours_to_show: 24
+            points_per_hour: 4
+            show:
+              labels: true
+              points: true
+              legend: true
+            color_thresholds:
+              - value: 18
+                color: '#3498db'
+              - value: 21
+                color: '#2ecc71'
+              - value: 24
+                color: '#e74c3c'
+          - type: custom:mini-graph-card
+            name: Living Room Environment
+            entities:
+              - entity: sensor.living_room_temperature_sensor_temperature
+                name: Temperature
+                color: '#e74c3c'
+              - entity: sensor.living_room_temperature_sensor_humidity
+                name: Humidity
+                color: '#3498db'
+                y_axis: secondary
+            hours_to_show: 24
+            points_per_hour: 4
+            show:
+              labels: true
+              points: true
+              legend: true
+            color_thresholds:
+              - value: 18
+                color: '#3498db'
+              - value: 21
+                color: '#2ecc71'
+              - value: 24
+                color: '#e74c3c'
+          - type: custom:mushroom-template-card
+            primary: Active Heating Rooms
+            secondary: '{{ states(''sensor.active_heating_rooms_count'') }} rooms'
+            icon: mdi:radiator
+            icon_color: |-
+              {% if states('sensor.active_heating_rooms_count') | int > 0 %}
+                orange
+              {% else %}
+                grey
+              {% endif %}
+            grid_options:
+              columns: full
+      - type: grid
+        columns: 2
+        cards:
+          - type: heading
+            icon: mdi:fridge
+            heading_style: title
+            heading: Upstairs
+          - type: thermostat
+            entity: climate.ethan
+            grid_options:
+              columns: 6
+              rows: 3
+            show_current_as_primary: false
+          - type: thermostat
+            entity: climate.jacob
+            show_current_as_primary: false
+            grid_options:
+              columns: 6
+              rows: 3
+          - type: thermostat
+            entity: climate.master_bedroom
+            grid_options:
+              columns: 6
+              rows: 3
+          - type: thermostat
+            entity: climate.landing
+            grid_options:
+              columns: 6
+              rows: 3
+          - type: heading
+            icon: mdi:fridge
+            heading: Downstairs
+            heading_style: title
+          - type: thermostat
+            entity: climate.living_room
+            grid_options:
+              columns: 6
+              rows: 3
+          - type: thermostat
+            entity: climate.kitchen
+            grid_options:
+              columns: 6
+              rows: 3
+      - type: grid
+        columns: 2
+        cards: []
