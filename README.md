@@ -15,272 +15,49 @@ Also included is the **image** demonstrating the resulting dashboard UI.
 
 ---
 
-## Relevant Sensor Configuration
+# Smart Heating Dashboard: Step 2 – Requirements
 
-```yaml
-#===============================
-# HISTORY_STATS Sensors
-# (Tracks how many hours each room's HVAC is actively heating)
-#===============================
-sensor:
+Before setting up your **Smart Heating Dashboard**, you’ll need the following:
 
-  - platform: history_stats
-    name: ethan_heating_time
-    entity_id: sensor.ethan_hvac_action
-    state: 'heating'
-    type: time
-    start: '{{ now().replace(hour=0, minute=0, second=0) }}'
-    end: '{{ now() }}'
+1. **Home Assistant**  
+   - A running instance of Home Assistant (Core, Supervised, or OS).  
+   - Basic knowledge of editing YAML configuration.
 
-  - platform: history_stats
-    name: jacob_heating_time
-    entity_id: sensor.jacob_hvac_action
-    state: 'heating'
-    type: time
-    start: '{{ now().replace(hour=0, minute=0, second=0) }}'
-    end: '{{ now() }}'
+2. **Mushroom Cards**  
+   - A popular custom Lovelace card collection that provides many nicely styled cards.  
+   - [Mushroom GitHub Repo](https://github.com/piitaya/lovelace-mushroom) for installation instructions.
 
-  - platform: history_stats
-    name: kitchen_heating_time
-    entity_id: sensor.kitchen_hvac_action
-    state: 'heating'
-    type: time
-    start: '{{ now().replace(hour=0, minute=0, second=0) }}'
-    end: '{{ now() }}'
+3. **Mini Graph Card**  
+   - Used for rendering historical data graphs in a compact, elegant style.  
+   - [Mini Graph Card Repo](https://github.com/kalkih/mini-graph-card) for installation steps.
 
-  - platform: history_stats
-    name: living_room_heating_time
-    entity_id: sensor.living_room_hvac_action
-    state: 'heating'
-    type: time
-    start: '{{ now().replace(hour=0, minute=0, second=0) }}'
-    end: '{{ now() }}'
+4. **Climate Entities**  
+   - One or more climate entities in Home Assistant, such as `climate.ethan`, `climate.jacob`, etc.  
+   - These may come from smart thermostats, TRVs, or generic thermostat components.
 
-  - platform: history_stats
-    name: master_bedroom_heating_time
-    entity_id: sensor.master_bedroom_hvac_action
-    state: 'heating'
-    type: time
-    start: '{{ now().replace(hour=0, minute=0, second=0) }}'
-    end: '{{ now() }}'
+5. **Gas Cost Sensor** (or Gas Consumption Sensor)  
+   - Example: `sensor.octopus_energy_gas_e6s24887631961_4160990601_current_accumulative_cost`  
+   - Your actual entity names may differ (e.g., from an integration like Octopus, MQTT, or manual input).
 
-  - platform: history_stats
-    name: landing_heating_time
-    entity_id: sensor.landing_hvac_action
-    state: 'heating'
-    type: time
-    start: '{{ now().replace(hour=0, minute=0, second=0) }}'
-    end: '{{ now() }}'
+6. **HVAC Action Sensors**  
+   - Template sensors that read `hvac_action` from each climate entity (e.g., `sensor.ethan_hvac_action`), enabling daily heating time tracking.
 
+7. **History Stats**  
+   - Utilized to track daily heating time for each room.  
+   - Requires `history_stats` platform in your `sensor:` config.
 
-#===============================
-# TEMPLATE Sensors
-# (HVAC action, Active rooms, and cost calculations)
-#===============================
-template:
-  - sensor:
-      # Each room's hvac_action (used by history_stats above)
-      - name: ethan_hvac_action 
-        unique_id: ethan_hvac_action
-        state: "{{ state_attr('climate.ethan', 'hvac_action') }}"
+8. **Environmental Sensors** (optional but recommended)  
+   - For temperature and humidity, such as `sensor.upstairs_temperature_sensor_temperature` or `sensor.living_room_temperature_sensor_humidity`.  
+   - Used to display environment graphs in the dashboard.
 
-      - name: jacob_hvac_action
-        unique_id: jacob_hvac_action
-        state: "{{ state_attr('climate.jacob', 'hvac_action') }}"
+---
 
-      - name: kitchen_hvac_action
-        unique_id: kitchen_hvac_action
-        state: "{{ state_attr('climate.kitchen', 'hvac_action') }}"
+**Next Step**: Which part would you like next?  
 
-      - name: living_room_hvac_action
-        unique_id: living_room_hvac_action
-        state: "{{ state_attr('climate.living_room', 'hvac_action') }}"
+You'll need the Code! It's in this repo:
 
-      - name: master_bedroom_hvac_action
-        unique_id: master_bedroom_hvac_action
-        state: "{{ state_attr('climate.master_bedroom', 'hvac_action') }}"
+Configuration YAML: SENSORS:  https://github.com/ITSpecialist111/Heating-Costs/blob/main/Sensors%20YAML
 
-      - name: landing_hvac_action
-        unique_id: landing_hvac_action
-        state: "{{ state_attr('climate.landing', 'hvac_action') }}"
+Dashboard YAML:  https://github.com/ITSpecialist111/Heating-Costs/blob/main/Dashbaord%20YAML  
 
-
-  #===============================
-  # Additional template sensors grouped for clarity
-  #===============================
-  - sensor:
-      # How many rooms are actively heating
-      - name: active_heating_rooms_count
-        unique_id: active_heating_rooms_count
-        unit_of_measurement: "rooms"
-        state: >
-          {% set total = 0 %}
-          {% for room in ['ethan', 'jacob', 'kitchen', 'living_room', 'master_bedroom', 'landing'] %}
-            {% if states('sensor.' + room + '_heating_time') | float(default=0) > 0 %}
-              {% set total = total + 1 %}
-            {% endif %}
-          {% endfor %}
-          {{ total if total > 0 else 1 }}
-
-
-      # Gas cost per active room
-      - name: gas_cost_per_active_room
-        unique_id: gas_cost_per_active_room
-        unit_of_measurement: "GBP"
-        state: >
-          {% set active_rooms = namespace(count=0) %}
-          {% for room in ['sensor.ethan_hvac_action', 'sensor.jacob_hvac_action', 
-                          'sensor.kitchen_hvac_action', 'sensor.living_room_hvac_action', 
-                          'sensor.master_bedroom_hvac_action', 'sensor.landing_hvac_action'] %}
-            {% if states(room) == 'heating' %}
-              {% set active_rooms.count = active_rooms.count + 1 %}
-            {% endif %}
-          {% endfor %}
-          {% set gas_cost = states('sensor.octopus_energy_gas__current_accumulative_cost') | float(default=0) %}
-          {{ (gas_cost / (active_rooms.count if active_rooms.count > 0 else 1)) | round(2) }}
-
-
-      # Real-time cost per room
-      - name: ethan_room_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% if states('climate.ethan') == 'heat' and state_attr('climate.ethan', 'hvac_action') != 'idle' %}
-            {% set gas_cost = states('sensor.octopus_energy_gas_current_accumulative_cost') | float(default=0) %}
-            {% set active_rooms = states('sensor.active_heating_rooms_count') | int(default=1) %}
-            {{ (gas_cost / active_rooms) | round(3) if gas_cost > 0 else 0 }}
-          {% else %}
-            0
-          {% endif %}
-
-      - name: jacob_room_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% if is_state('climate.jacob', 'heat') %}
-            {{ states('sensor.gas_cost_per_active_room') | float }}
-          {% else %}
-            0
-          {% endif %}
-
-      - name: kitchen_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% if is_state('climate.kitchen', 'heat') %}
-            {{ states('sensor.gas_cost_per_active_room') | float }}
-          {% else %}
-            0
-          {% endif %}
-
-      - name: living_room_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% if is_state('climate.living_room', 'heat') %}
-            {{ states('sensor.gas_cost_per_active_room') | float }}
-          {% else %}
-            0
-          {% endif %}
-
-      - name: master_bedroom_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% if is_state('climate.master_bedroom', 'heat') %}
-            {{ states('sensor.gas_cost_per_active_room') | float }}
-          {% else %}
-            0
-          {% endif %}
-
-      - name: landing_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% if is_state('climate.landing', 'heat') %}
-            {{ states('sensor.gas_cost_per_active_room') | float }}
-          {% else %}
-            0
-          {% endif %}
-
-
-      #===============================
-      # Daily Cost Calculations
-      #===============================
-      - name: ethan_room_daily_cost
-        unique_id: ethan_room_daily_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% set room_hours = states('sensor.ethan_heating_time') | float(default=0) %}
-          {% set total = states('sensor.total_heating_hours') | float(default=1) %}
-          {% set gas_cost = states('sensor.octopus_energy_gas__current_accumulative_cost') | float(default=0) %}
-          {{ ((gas_cost * room_hours) / total) | round(2) }}
-        attributes:
-          room_hours: "{{ states('sensor.ethan_heating_time') }}"
-          total_hours: "{{ states('sensor.total_heating_hours') }}"
-          gas_cost: "{{ states('sensor.octopus_energy_gas__current_accumulative_cost') }}"
-          percentage: "{{ ((states('sensor.ethan_heating_time') | float(default=0) / states('sensor.total_heating_hours') | float(default=1)) * 100) | round(1) }}%"
-
-      - name: jacob_room_daily_cost
-        unique_id: jacob_room_daily_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% set room_hours = states('sensor.jacob_heating_time') | float(default=0) %}
-          {% set total = states('sensor.total_heating_hours') | float(default=1) %}
-          {% set gas_cost = states('sensor.octopus_energy_gas__current_accumulative_cost') | float(default=0) %}
-          {{ ((gas_cost * room_hours) / total) | round(2) if room_hours > 0 else 0 }}
-        attributes:
-          room_hours: "{{ states('sensor.jacob_heating_time') }}"
-          total_hours: "{{ states('sensor.total_heating_hours') }}"
-          gas_cost: "{{ states('sensor.octopus_energy_gas__current_accumulative_cost') }}"
-          percentage: "{{ ((states('sensor.jacob_heating_time') | float(default=0) / states('sensor.total_heating_hours') | float(default=1)) * 100) | round(1) }}%"
-
-      - name: kitchen_daily_cost
-        unique_id: kitchen_daily_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% set room_hours = states('sensor.kitchen_heating_time') | float(default=0) %}
-          {% set total = states('sensor.total_heating_hours') | float(default=1) %}
-          {% set gas_cost = states('sensor.octopus_energy_gas__current_accumulative_cost') | float(default=0) %}
-          {{ ((gas_cost * room_hours) / total) | round(2) if room_hours > 0 else 0 }}
-        attributes:
-          room_hours: "{{ states('sensor.kitchen_heating_time') }}"
-          total_hours: "{{ states('sensor.total_heating_hours') }}"
-          gas_cost: "{{ states('sensor.octopus_energy_gas__current_accumulative_cost') }}"
-          percentage: "{{ ((states('sensor.kitchen_heating_time') | float(default=0) / states('sensor.total_heating_hours') | float(default=1)) * 100) | round(1) }}%"
-
-      - name: living_room_daily_cost
-        unique_id: living_room_daily_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% set room_hours = states('sensor.living_room_heating_time') | float(default=0) %}
-          {% set total = states('sensor.total_heating_hours') | float(default=1) %}
-          {% set gas_cost = states('sensor.octopus_energy_gas__current_accumulative_cost') | float(default=0) %}
-          {{ ((gas_cost * room_hours) / total) | round(2) if room_hours > 0 else 0 }}
-        attributes:
-          room_hours: "{{ states('sensor.living_room_heating_time') }}"
-          total_hours: "{{ states('sensor.total_heating_hours') }}"
-          gas_cost: "{{ states('sensor.octopus_energy_gas__current_accumulative_cost') }}"
-          percentage: "{{ ((states('sensor.living_room_heating_time') | float(default=0) / states('sensor.total_heating_hours') | float(default=1)) * 100) | round(1) }}%"
-
-      - name: master_bedroom_daily_cost
-        unique_id: master_bedroom_daily_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% set room_hours = states('sensor.master_bedroom_heating_time') | float(default=0) %}
-          {% set total = states('sensor.total_heating_hours') | float(default=1) %}
-          {% set gas_cost = states('sensor.octopus_energy_gas__current_accumulative_cost') | float(default=0) %}
-          {{ ((gas_cost * room_hours) / total) | round(2) if room_hours > 0 else 0 }}
-        attributes:
-          room_hours: "{{ states('sensor.master_bedroom_heating_time') }}"
-          total_hours: "{{ states('sensor.total_heating_hours') }}"
-          gas_cost: "{{ states('sensor.octopus_energy_gas__current_accumulative_cost') }}"
-          percentage: "{{ ((states('sensor.master_bedroom_heating_time') | float(default=0) / states('sensor.total_heating_hours') | float(default=1)) * 100) | round(1) }}%"
-
-      - name: landing_daily_cost
-        unique_id: landing_daily_cost
-        unit_of_measurement: "GBP"
-        state: >
-          {% set room_hours = states('sensor.landing_heating_time') | float(default=0) %}
-          {% set total = states('sensor.total_heating_hours') | float(default=1) %}
-          {% set gas_cost = states('sensor.octopus_energy_gas__current_accumulative_cost') | float(default=0) %}
-          {{ ((gas_cost * room_hours) / total) | round(2) if room_hours > 0 else 0 }}
-        attributes:
-          room_hours: "{{ states('sensor.landing_heating_time') }}"
-          total_hours: "{{ states('sensor.total_heating_hours') }}"
-          gas_cost: "{{ states('sensor.octopus_energy_gas__current_accumulative_cost') }}"
-          percentage: "{{ ((states('sensor.landing_heating_time
+Note:  Obviously change any sensors, names etc that you need too.
